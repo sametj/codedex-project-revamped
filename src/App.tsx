@@ -50,7 +50,7 @@ export default function App() {
   }, []);
 
   // Pomodoro Section
-  const [pomoDuration, setPomoduration] = useState<number>(25);
+  const [pomoDuration, setPomoduration] = useState<number>(0);
   const [minutes, setMinutes] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [pomoStatus, setPomoStatus] = useState<string>("stopped");
@@ -89,6 +89,8 @@ export default function App() {
   //Form Section
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setPomoStatus("reset");
+    setShowForm(false);
   }
 
   return (
@@ -208,8 +210,10 @@ export default function App() {
             <span
               onClick={() => setShowForm((show) => !show)}
               className='text-100 text-[#1b2952] font-bold cursor-pointer select-none'>
-              {Math.floor(minutes / 60)}:
-              {seconds < 10 ? "0" + seconds : seconds}
+              {Math.floor(minutes / 60) < 10
+                ? "0" + Math.floor(minutes / 60)
+                : Math.floor(minutes / 60)}
+              :{seconds < 10 ? "0" + seconds : seconds}
             </span>
             <form
               style={{ display: `${showForm ? "inline-block" : "none"}` }}
