@@ -1,0 +1,16 @@
+TODO: Create pomodoro timer
+
+For the pomodoro buttons, There should be a pomoStatus
+- Paused and Stopped
+- Reset can be a standalone function
+
+The paused status will stop the timer from continuing
+The stopped button will stop and reset the timer and set the status to  stopped
+
+In that case the paused and reset function can be standalone functions. where they only happen when the button is clicked... I'm not certain yet
+
+As of right now the timer function is done.
+
+I want to add the feature of user being able to type in the pomodoro duration. Making the app flexible for longer tasks
+
+
