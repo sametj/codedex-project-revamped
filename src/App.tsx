@@ -29,28 +29,16 @@ const categories = [
   { src: folder, name: "Others" },
 ];
 
-const todos: todoArray = [
-  {
-    id: 2,
-    category: { src: briefcase, name: "Work" },
-    todoName: "Test",
-    isCompleted: false,
-    session: 2,
-    time: "06:50",
-  },
-  {
-    id: 3,
-    category: { src: book, name: "study" },
-    todoName: "Test",
-    isCompleted: false,
-    session: 1,
-    time: "06:50",
-  },
-];
-
 export default function App() {
   const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
-  const [todoList, setTodoList] = useState<todoArray>(todos);
+  const [todoList, setTodoList] = useState<todoArray>([]);
+
+  useEffect(() => {
+    const todos = localStorage.getItem("todos");
+    if (todos) {
+      setTodoList(JSON.parse(todos));
+    }
+  }, []);
 
   const completedTodos = todoList.filter((todo) => todo.isCompleted);
   const completedPercentage = (completedTodos.length / todoList.length) * 100;
@@ -66,16 +54,16 @@ export default function App() {
 
   return (
     <>
-      {showTaskForm && <TaskForm showForm={handleShowForm} />}
+      {showTaskForm && <TaskForm todoList={todoList} showForm={handleShowForm} />}
       <div className="container mx-auto grid grid-cols-2 grid-rows-3  px-100 py-100 h-screen gap-20 ">
         {/* Todo list Section */}
         <section className=" row-span-3  flex flex-col  items-center border-m rounded-3xl bg-[#f3f3f3]/80 backdrop-blur-md">
           <div className="basis-0 p-12  flex items-center justify-between w-full border-b-2">
             <div className="text-[#1b2952] font-bold">
               <span>Task List </span>
-              {todos.length > 0 && (
+              {todoList.length > 0 && (
                 <span className="text-[#4c4f53] font-light">
-                  ({todos.length > 1 ? todos.length + " tasks" : todos.length + " task"})
+                  ({todoList.length > 1 ? todoList.length + " tasks" : todoList.length + " task"})
                 </span>
               )}
             </div>
@@ -93,7 +81,7 @@ export default function App() {
 
           {/* Todo List view */}
           <div className="basis-4/4 py-20 w-full h-full text-white flex  border-b-2  flex-wrap overflow-auto">
-            {todos.length > 0 ? (
+            {todoList.length > 0 ? (
               <TaskList todoList={todoList} setTodoList={handleCheckboxChange} />
             ) : (
               <EmptyList />
@@ -111,6 +99,7 @@ export default function App() {
 
         <section className="row-span-3 grid grid-rows-3  gap-20">
           <PomoDoroStatus
+            todoList={todoList}
             completedTodos={completedTodos}
             completedPercentage={completedPercentage}
           />
@@ -170,7 +159,7 @@ function TaskList({
               {todo.todoName}
             </span>
             <span className="text-[#1b2952]">
-              {todo.isCompleted ? "Done" : `session ${todo.session}/ ${todo.session}`}
+              {todo.isCompleted ? "Done" : `session ${todo.currentSession}/ ${todo.totalSession}`}
             </span>
           </div>
           <span className="self-end text-[gray] w-1/4 ">At {todo.time}</span>
@@ -194,7 +183,7 @@ function EmptyList() {
   );
 }
 
-function TaskForm({ showForm }: { showForm: () => void }) {
+function TaskForm({ showForm, todoList }: { showForm: () => void; todoList: todoArray }) {
   const [session, setSession] = useState<number>(0);
   const [notesOpen, setNotesOpen] = useState<boolean>(false);
   const [taskName, setTaskName] = useState<string>("");
@@ -203,6 +192,20 @@ function TaskForm({ showForm }: { showForm: () => void }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const newTask = {
+      id: Date.now(),
+      category: { src: icon, name: "Work" },
+      todoName: taskName,
+      isCompleted: false,
+      currentSession: 1,
+      description: description,
+      totalSession: session,
+      time: new Date().toLocaleTimeString(),
+    };
+    todoList.push(newTask);
+    localStorage.setItem("todos", JSON.stringify(todoList));
+    showForm();
   }
 
   function handlePlus() {
@@ -249,6 +252,7 @@ function TaskForm({ showForm }: { showForm: () => void }) {
           <div className="flex justify-around">
             {categories.map((category, index) => (
               <button
+                type="button"
                 onClick={() => setIcon(category.src)}
                 className="w-80 h-fit bg-zinc-400/20 rounded-md p-4 focus:outline-none focus:ring focus:ring-green-500 "
                 key={index}>
@@ -260,14 +264,14 @@ function TaskForm({ showForm }: { showForm: () => void }) {
         </div>
 
         {/* Session setter */}
-        <div className="w-full   flex items-center justify-between p-20">
+        <div className="w-full flex items-center justify-between p-20">
           <span>Total Sessions</span>
           <div className="w-1/5 bg-zinc-200 rounded-2xl p-2 flex items-center justify-around">
-            <button onClick={handleMinus}>
+            <button type="button" onClick={handleMinus}>
               <img src={minus} />
             </button>
             <span className="bg-white w-40 text-center p-4 rounded-3xl">{session}</span>
-            <button onClick={handlePlus}>
+            <button type="button" onClick={handlePlus}>
               <img src={plus} />
             </button>
           </div>
@@ -280,6 +284,7 @@ function TaskForm({ showForm }: { showForm: () => void }) {
             style={{ display: `${notesOpen ? "none" : "flex"}` }}>
             Add Notes
             <button
+              type="button"
               onClick={() => setNotesOpen(!notesOpen)}
               className="bg-zinc-200 flex items-center justify-center rounded-full w-40 h-40">
               <img src={plus} />
@@ -297,6 +302,7 @@ function TaskForm({ showForm }: { showForm: () => void }) {
               onChange={(e) => setDescription(e.target.value)}
             />
             <button
+              type="button"
               onClick={() => setNotesOpen(false)}
               className="absolute right-20 top-10 rounded-full bg-zinc-400 w-20 h-20 flex items-center justify-center p-2">
               <img src={close} />
@@ -306,7 +312,7 @@ function TaskForm({ showForm }: { showForm: () => void }) {
 
         {/* Button container*/}
         <div className="w-full flex items-center justify-center border-t-2 gap-20 p-12 ">
-          <button onClick={showForm} className="w-1/5 bg-zinc-400 p-12 rounded-3xl ">
+          <button onClick={() => showForm()} className="w-1/5 bg-zinc-400 p-12 rounded-3xl ">
             Cancel
           </button>
           <button className="w-1/5 bg-green-500 p-12 rounded-3xl">Add Task</button>
@@ -317,9 +323,11 @@ function TaskForm({ showForm }: { showForm: () => void }) {
 }
 
 function PomoDoroStatus({
+  todoList,
   completedTodos,
   completedPercentage,
 }: {
+  todoList: todoArray;
   completedTodos: todoArray;
   completedPercentage: number;
 }) {
@@ -349,7 +357,7 @@ function PomoDoroStatus({
             style={{
               backgroundColor: `${completedTodos.length < 1 ? "grey" : "skyblue"}`,
             }}>
-            {completedTodos.length < 1 ? "0" : completedTodos.length + "/" + todos.length}
+            {completedTodos.length < 1 ? "0" : completedTodos.length + "/" + todoList.length}
           </span>
           <span className=" flex items-center text-center ">Tasks was done</span>
         </div>
