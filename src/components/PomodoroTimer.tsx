@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { todo } from "@/types";
+import { todo, todoArray } from "@/types";
 import pausePlay from "@/assets/play-pause.svg";
 import reset from "@/assets/arrows-counter-clockwise.svg";
 import stop from "@/assets/stop-fill.svg";
@@ -9,16 +9,20 @@ import play from "@/assets/play-fill.svg";
 import folder from "@/assets/folder-open-fill.svg";
 
 export default function PomodoroTimer({
+  todoList,
   pomoDuration,
   breakDuration,
   activeTask,
   setPomoDuration,
+  setTodoList,
 }: {
+  todoList: todoArray;
   activeTask: todo | null;
   pomoDuration: number;
   breakDuration: number;
   setPomoDuration: (duration: number) => void;
   setBreakDuration: (duration: number) => void;
+  setTodoList: (todoList: todoArray) => void;
 }) {
   const [pomoStage, setPomoStage] = useState<string>("ongoing");
   const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -56,6 +60,8 @@ export default function PomodoroTimer({
         } else {
           setPomoStatus("stopped");
           setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
+          setCount((count) => count + 0.5);
+          updateTask();
         }
       }, 1000);
 
@@ -72,7 +78,32 @@ export default function PomodoroTimer({
       setElapsedTime(elapsedTime);
       setPomoStatus("paused");
     }
-  }, [pomoStatus, minutes, pomoDuration, breakDuration, pomoStage, elapsedTime, activeTask, count]);
+
+    function updateTask() {
+      const todoListCopy = [...todoList];
+      if (activeTask) {
+        const updatedTask = activeTask;
+        updatedTask.currentSession += 0.5;
+        updatedTask.isCompleted = updatedTask.currentSession === updatedTask.totalSession;
+        todoListCopy[activeTask.id] = updatedTask;
+      }
+
+      setTodoList(todoListCopy);
+
+      localStorage.setItem("todos", JSON.stringify(todoListCopy));
+    }
+  }, [
+    pomoStatus,
+    minutes,
+    pomoDuration,
+    breakDuration,
+    pomoStage,
+    elapsedTime,
+    activeTask,
+    count,
+    setTodoList,
+    todoList,
+  ]);
 
   //Form Section
   function handleSubmit(e: React.FormEvent) {
@@ -85,16 +116,6 @@ export default function PomodoroTimer({
     setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
     setElapsedTime(0);
     setPomoStatus("stopped");
-  }
-
-  function handleSessionCount() {
-    setCount((prev) => prev + 0.5);
-
-    if (count === activeTask?.totalSession) {
-      setPomoStatus("stopped");
-      setPomoStage("ongoing");
-      setCount(0);
-    }
   }
 
   return (

@@ -11,12 +11,16 @@ export default function TaskList({
   showForm,
   checkboxChange,
   setActiveTask,
+  setPomoDuration,
+  setBreakDuration,
 }: {
   todoList: todoArray;
   activeTask: todo | null;
   showForm: () => void;
   checkboxChange: (id: number) => void;
   setActiveTask: (task: todo) => void;
+  setPomoDuration: (duration: number) => void;
+  setBreakDuration: (duration: number) => void;
 }) {
   return (
     <>
@@ -50,6 +54,8 @@ export default function TaskList({
               setTodoList={checkboxChange}
               activeTask={activeTask}
               setActiveTask={setActiveTask}
+              setPomoDuration={setPomoDuration}
+              setBreakDuration={setBreakDuration}
             />
           ) : (
             <EmptyList />
@@ -85,11 +91,15 @@ function Tasks({
   activeTask,
   setTodoList,
   setActiveTask,
+  setPomoDuration,
+  setBreakDuration,
 }: {
   todoList: todoArray;
   activeTask: todo | null;
   setTodoList: (id: number) => void;
   setActiveTask: (task: todo) => void;
+  setPomoDuration: (duration: number) => void;
+  setBreakDuration: (duration: number) => void;
 }) {
   return (
     <div className="flex flex-col gap-12 w-full">
@@ -100,6 +110,8 @@ function Tasks({
           key={todo.id}
           todo={todo}
           setTodoList={setTodoList}
+          setPomoDuration={setPomoDuration}
+          setBreakDuration={setBreakDuration}
         />
       ))}
     </div>
@@ -111,20 +123,30 @@ function Task({
   activeTask,
   setTodoList,
   setActiveTask,
+  setPomoDuration,
+  setBreakDuration,
 }: {
   todo: todo;
   activeTask: todo | null;
   setTodoList: (id: number) => void;
   setActiveTask: (task: todo) => void;
+  setPomoDuration: (duration: number) => void;
+  setBreakDuration: (duration: number) => void;
 }) {
+  function handleTaskClick(task: todo) {
+    setActiveTask(task);
+    setPomoDuration(task.pomoDuration);
+    setBreakDuration(task.breakDuration);
+  }
   return (
     <li
-      onClick={() => setActiveTask(todo)}
+      onClick={() => handleTaskClick(todo)}
       key={todo.id}
       className="flex items-center p-8 justify-between hover:bg-gradient-to-r from-violet-100/20 from-20% via-violet-200 via-30% to-transparent to-100%">
       <div className="flex items-center">
         <input
-          onChange={setTodoList.bind(null, todo.id)}
+          checked={todo.isCompleted}
+          onChange={() => setTodoList(todo.id)}
           className="appearance-none"
           type="checkbox"
           id={`${todo.todoName}-checkbox-${todo.id}`}

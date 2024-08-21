@@ -7,11 +7,11 @@ import TaskList from "./components/TaskList";
 import { todo, todoArray } from "@/types";
 
 export default function App() {
+  const [activeTask, setActiveTask] = useState<todo | null>(null);
   const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
   const [todoList, setTodoList] = useState<todoArray>([]);
-  const [pomoDuration, setPomoDuration] = useState<number>(0.2);
-  const [breakDuration, setBreakDuration] = useState<number>(0.2);
-  const [activeTask, setActiveTask] = useState<todo | null>(null);
+  const [pomoDuration, setPomoDuration] = useState<number>(25);
+  const [breakDuration, setBreakDuration] = useState<number>(5);
 
   useEffect(() => {
     const todos = localStorage.getItem("todos");
@@ -44,22 +44,19 @@ export default function App() {
     setActiveTask(task);
   }
 
+  function handleSetTodoList(newTodoList: todoArray) {
+    setTodoList(newTodoList);
+  }
+
   return (
     <>
-      {showTaskForm && (
-        <TaskForm
-          todoList={todoList}
-          pomoDuration={pomoDuration}
-          breakDuration={breakDuration}
-          setPomoDuration={handlePomoDuration}
-          setBreakDuration={handleBreakDuration}
-          showForm={handleShowForm}
-        />
-      )}
+      {showTaskForm && <TaskForm todoList={todoList} showForm={handleShowForm} />}
       <div className="container mx-auto grid grid-cols-2 grid-rows-3  px-100 py-100 h-screen gap-20 ">
         <TaskList
           activeTask={activeTask}
           setActiveTask={handleActiveTask}
+          setPomoDuration={handlePomoDuration}
+          setBreakDuration={handleBreakDuration}
           todoList={todoList}
           showForm={handleShowForm}
           checkboxChange={handleCheckboxChange}
@@ -72,11 +69,13 @@ export default function App() {
             completedPercentage={completedPercentage}
           />
           <PomodoroTimer
+            todoList={todoList}
             activeTask={activeTask}
             pomoDuration={pomoDuration}
             breakDuration={breakDuration}
             setPomoDuration={handlePomoDuration}
             setBreakDuration={handleBreakDuration}
+            setTodoList={handleSetTodoList}
           />
         </section>
       </div>

@@ -24,22 +24,16 @@ const categories = [
 export default function TaskForm({
   showForm,
   todoList,
-  pomoDuration,
-  breakDuration,
-  setPomoDuration,
-  setBreakDuration,
 }: {
   showForm: () => void;
-  breakDuration: number;
-  pomoDuration: number;
-  setPomoDuration: (duration: number) => void;
-  setBreakDuration: (duration: number) => void;
   todoList: todoArray;
 }) {
   const [session, setSession] = useState<number>(0);
   const [notesOpen, setNotesOpen] = useState<boolean>(false);
   const [taskName, setTaskName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [taskDuration, setTaskDuration] = useState<number>(0);
+  const [taskBreak, setTaskBreak] = useState<number>(0);
   const [icon, setIcon] = useState<string>("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -51,8 +45,8 @@ export default function TaskForm({
       todoName: taskName,
       isCompleted: false,
       currentSession: 1,
-      pomoDuration: pomoDuration,
-      breakDuration: breakDuration,
+      pomoDuration: taskDuration,
+      breakDuration: taskBreak,
       description: description,
       totalSession: session,
       time: new Date().toLocaleTimeString(),
@@ -62,6 +56,7 @@ export default function TaskForm({
     }
     todoList.push(newTask);
     localStorage.setItem("todos", JSON.stringify(todoList));
+
     showForm();
   }
 
@@ -138,7 +133,7 @@ export default function TaskForm({
           <div className="flex gap-4">
             <span className=""> Enter Focus Duration:</span>
             <select
-              onChange={(e) => setPomoDuration(Number(e.target.value))}
+              onChange={(e) => setTaskDuration(Number(e.target.value))}
               className="border-2 rounded-md"
               name="pomoDuration">
               <option value="25">25</option>
@@ -154,7 +149,7 @@ export default function TaskForm({
           <div className="flex gap-4">
             <span> Enter Break Duration:</span>
             <select
-              onChange={(e) => setBreakDuration(Number(e.target.value))}
+              onChange={(e) => setTaskBreak(Number(e.target.value))}
               className="border-2 rounded-md"
               name="break">
               <option value="5">5</option>
