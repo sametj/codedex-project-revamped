@@ -9,8 +9,8 @@ import { todo, todoArray } from "@/types";
 export default function App() {
   const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
   const [todoList, setTodoList] = useState<todoArray>([]);
-  const [pomoDuration, setPomoDuration] = useState<number>(25);
-  const [breakDuration, setBreakDuration] = useState<number>(5);
+  const [pomoDuration, setPomoDuration] = useState<number>(0.2);
+  const [breakDuration, setBreakDuration] = useState<number>(0.2);
   const [activeTask, setActiveTask] = useState<todo | null>(null);
 
   useEffect(() => {

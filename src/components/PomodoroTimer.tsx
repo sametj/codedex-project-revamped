@@ -25,6 +25,7 @@ export default function PomodoroTimer({
   const [pomoStatus, setPomoStatus] = useState<string>("stopped");
   const [showForm, setShowForm] = useState<boolean>(false);
   const [minutes, setMinutes] = useState<number>(0);
+  const [count, setCount] = useState<number>(0);
 
   const seconds = minutes % 60;
 
@@ -42,6 +43,11 @@ export default function PomodoroTimer({
   }, [pomoStage, pomoDuration, breakDuration]);
 
   useEffect(() => {
+    if (pomoStatus === "stopped") {
+      setMinutes(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
+      setElapsedTime(0);
+    }
+
     if (pomoStatus === "ongoing") {
       const interval = setInterval(() => {
         if (minutes !== 0) {
@@ -49,21 +55,24 @@ export default function PomodoroTimer({
           setElapsedTime((time) => time + 1);
         } else {
           setPomoStatus("stopped");
+          setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
         }
       }, 1000);
 
       return () => clearInterval(interval);
     }
+
     if (pomoStatus === "reset") {
       setMinutes(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
       setElapsedTime(0);
       setPomoStatus("stopped");
     }
+
     if (pomoStatus === "paused") {
       setElapsedTime(elapsedTime);
       setPomoStatus("paused");
     }
-  }, [pomoStatus, minutes, pomoDuration, breakDuration, pomoStage, elapsedTime]);
+  }, [pomoStatus, minutes, pomoDuration, breakDuration, pomoStage, elapsedTime, activeTask, count]);
 
   //Form Section
   function handleSubmit(e: React.FormEvent) {
@@ -76,6 +85,16 @@ export default function PomodoroTimer({
     setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
     setElapsedTime(0);
     setPomoStatus("stopped");
+  }
+
+  function handleSessionCount() {
+    setCount((prev) => prev + 0.5);
+
+    if (count === activeTask?.totalSession) {
+      setPomoStatus("stopped");
+      setPomoStage("ongoing");
+      setCount(0);
+    }
   }
 
   return (
