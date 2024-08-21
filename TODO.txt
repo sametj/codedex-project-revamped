@@ -14,3 +14,16 @@ As of right now the timer function is done.
 I want to add the feature of user being able to type in the pomodoro duration. Making the app flexible for longer tasks
 
 
+Session Planning
+- When the task is clicked, there should be a green outline on the checkbox signifying that that is the active Session  maybe use state management to set it as active
+- The currently selected task is shown on the pomodoro session 
+
+Side note: Add pomoDuration to  the todo form and break duration
+
+
+Deb's Input
+- Hill charts ()
+
+List of ISSUES
+- Percentage for timer is incorrect
+- Delayed switch on Pomodoro stage
