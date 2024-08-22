@@ -9,6 +9,7 @@ import controller from "@/assets/game-controller-fill.svg";
 import food from "@/assets/bread-fill.svg";
 import book from "@/assets/book-bookmark-fill.svg";
 import sport from "@/assets/barbell-fill.svg";
+import error from "@/assets/error.svg";
 
 import { todoArray } from "@/types";
 
@@ -28,12 +29,12 @@ export default function TaskForm({
   showForm: () => void;
   todoList: todoArray;
 }) {
-  const [session, setSession] = useState<number>(0);
+  const [session, setSession] = useState<number>(1);
   const [notesOpen, setNotesOpen] = useState<boolean>(false);
   const [taskName, setTaskName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [taskDuration, setTaskDuration] = useState<number>(0);
-  const [taskBreak, setTaskBreak] = useState<number>(0);
+  const [taskDuration, setTaskDuration] = useState<number>(25);
+  const [taskBreak, setTaskBreak] = useState<number>(5);
   const [icon, setIcon] = useState<string>("");
 
   function handleSubmit(e: React.FormEvent) {
@@ -41,7 +42,7 @@ export default function TaskForm({
 
     const newTask = {
       id: Date.now(),
-      category: { src: icon, name: "Work" },
+      category: { src: icon },
       todoName: taskName,
       isCompleted: false,
       currentSession: 1,
@@ -65,7 +66,7 @@ export default function TaskForm({
   }
 
   function handleMinus() {
-    setSession((prev) => (prev > 0 ? prev - 1 : 0));
+    setSession((prev) => (prev > 1 ? prev - 1 : 1));
   }
 
   return (
@@ -106,7 +107,10 @@ export default function TaskForm({
               <button
                 type="button"
                 onClick={() => setIcon(category.src)}
-                className="w-80 h-fit bg-zinc-400/20 rounded-md p-4 focus:outline-none focus:ring focus:ring-green-500 "
+                className="w-80 h-fit bg-zinc-400/20 rounded-md p-4"
+                style={{
+                  outline: `${icon === category.src ? "2px solid #22c55e" : "none"}`,
+                }}
                 key={index}>
                 <img src={category.src} />
                 {category.name}
@@ -187,7 +191,7 @@ export default function TaskForm({
             <button
               type="button"
               onClick={() => setNotesOpen(false)}
-              className="absolute right-20 top-10 rounded-full bg-zinc-400 w-20 h-20 flex items-center justify-center p-2">
+              className="absolute right-20 top-10 rounded-full bg-red-400 w-20 h-20 flex items-center justify-center p-2">
               <img src={close} />
             </button>
           </div>
@@ -195,10 +199,12 @@ export default function TaskForm({
 
         {/* Button container*/}
         <div className="w-full flex items-center justify-center border-t-2 gap-20 p-12 ">
-          <button onClick={() => showForm()} className="w-1/5 bg-zinc-400 p-12 rounded-3xl ">
+          <button
+            onClick={() => showForm()}
+            className="w-1/5 bg-red-400 p-12 text-white rounded-3xl ">
             Cancel
           </button>
-          <button className="w-1/5 bg-green-500 p-12 rounded-3xl">Add Task</button>
+          <button className="w-1/5 bg-green-500 p-12 rounded-3xl text-white">Add Task</button>
         </div>
       </form>
     </section>

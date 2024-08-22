@@ -24,7 +24,7 @@ export default function TaskList({
 }) {
   return (
     <>
-      <section className=" row-span-3  flex flex-col  items-center border-m rounded-3xl bg-[#f3f3f3]/80 backdrop-blur-md">
+      <section className=" row-span-3  flex flex-col  items-center border-m rounded-3xl bg-[#f3f3f3]/60 backdrop-blur-md">
         <div className="basis-0 p-12  flex items-center justify-between w-full border-b-2">
           <div className="text-[#1b2952] font-bold">
             <span>Task List </span>

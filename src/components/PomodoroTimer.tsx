@@ -119,8 +119,8 @@ export default function PomodoroTimer({
   }
 
   return (
-    <div className="row-span-2 bg-[#f3f3f3]/80  backdrop-blur-md flex flex-col justify-around flex items-center justify-between rounded-3xl">
-      <div className="flex w-6/12  bg-[#d7ddeb]/60 h-45  rounded-3xl justify-between">
+    <div className="row-span-2 bg-[#f3f3f3]/60  backdrop-blur-md flex flex-col justify-around flex items-center justify-between rounded-3xl">
+      <div className="flex w-6/12  bg-[#f3f3f3]/40 h-45  rounded-3xl justify-between">
         <button
           onClick={handlePomoStage}
           className="w-3/4 flex items-center justify-center  gap-2 rounded-3xl"
@@ -166,12 +166,12 @@ export default function PomodoroTimer({
         </div>
       </div>
 
-      <span className="w-1/3 flex items-center justify-center text-[#1b2952] font-bold bg-[#B3BBC4]/60 p-8 rounded-md">
-        <img width={42} height={42} src={activeTask?.category.src || folder} alt="" />{" "}
+      <span className="w-1/3 flex items-center justify-center text-[#1b2952] font-bold bg-[#B3BBC4]/40 p-8 rounded-md select-none">
+        <img width={42} height={42} src={activeTask?.category.src || folder} alt="" />
         {activeTask?.todoName || " #1 It's time to focus"}
       </span>
 
-      <div className="flex gap-12  w-3/4  justify-center">
+      <div className="flex gap-12  w-3/4  justify-center select-none">
         <button
           onClick={() => setPomoStatus("reset")}
           className="rounded-full bg-white px-8 text-[#1b2952]"

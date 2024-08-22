@@ -1,7 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap");
+
 /* tailwind reset */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Fira Code", monospace;
+    font-weight: 500;
+  }
+}
 
 #root {
   background-image: url(https://img.freepik.com/premium-photo/3d-style-illustration-f1-racing-car-with-abstract-out-space-speed-effect-background-formula-1_117038-4298.jpg);

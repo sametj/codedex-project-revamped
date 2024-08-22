@@ -1,6 +1,6 @@
 export type todo = {
   id: number;
-  category: { src: string; name: string };
+  category: { src: string };
   todoName: string;
   isCompleted: boolean;
   pomoDuration: number;

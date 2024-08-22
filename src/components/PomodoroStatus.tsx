@@ -28,7 +28,7 @@ export default function PomoDoroStatus({
   }, []);
 
   return (
-    <div className="row-span-1 bg-[#f3f3f3]/80  p-22 flex justify-between items-center justify-center rounded-3xl backdrop-blur-md">
+    <div className="row-span-1 bg-[#f3f3f3]/60  p-22 flex justify-between items-center justify-center rounded-3xl backdrop-blur-md">
       <div className="flex flex-col h-full justify-between ">
         <span className="text-lg font-bold ">Daily Progress</span>
         <div className="flex gap-12 w-full h-1/4 justify-start items-center">
