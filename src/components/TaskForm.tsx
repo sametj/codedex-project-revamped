@@ -9,7 +9,6 @@ import controller from "@/assets/game-controller-fill.svg";
 import food from "@/assets/bread-fill.svg";
 import book from "@/assets/book-bookmark-fill.svg";
 import sport from "@/assets/barbell-fill.svg";
-import error from "@/assets/error.svg";
 
 import { todoArray } from "@/types";
 
