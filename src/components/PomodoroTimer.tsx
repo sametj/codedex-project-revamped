@@ -36,7 +36,8 @@ export default function PomodoroTimer({
   const remainingSeconds = seconds % 60;
 
   //Percentage for bar
-  const pomodoroDuration = pomoStage === "ongoing" ? pomoDuration : breakDuration;
+  const pomodoroDuration =
+    pomoStage === "ongoing" ? pomoDuration : breakDuration;
   const percentage = (elapsedTime / (pomodoroDuration * 60)) * 100;
 
   //active Task
@@ -109,23 +110,25 @@ export default function PomodoroTimer({
   const timerValue = `${timerMinutes}:${timerSeconds}`
 
   return (
-    <div className="row-span-2 bg-[#f3f3f3]/60  backdrop-blur-md flex flex-col justify-around flex items-center justify-between rounded-3xl">
-      <div className="flex w-6/12  bg-[#f3f3f3]/40 h-45  rounded-3xl justify-between">
+    <div className="row-span-2 flex flex-col items-center justify-between justify-around rounded-3xl bg-[#f3f3f3]/60 backdrop-blur-md">
+      <div className="flex h-45 w-6/12 justify-between rounded-3xl bg-[#f3f3f3]/40">
         <button
           onClick={handlePomoStage}
-          className="w-3/4 flex items-center justify-center  gap-2 rounded-3xl"
+          className="flex w-3/4 items-center justify-center gap-2 rounded-3xl"
           style={{
             backgroundColor: `${pomoStage === "ongoing" ? "white" : "transparent"}`,
-          }}>
+          }}
+        >
           <img src={timer} alt="timer" />
           <span>Ongoing</span>
         </button>
         <button
           onClick={handlePomoStage}
-          className="w-2/3 flex items-center justify-center gap-2 rounded-3xl"
+          className="flex w-2/3 items-center justify-center gap-2 rounded-3xl"
           style={{
             backgroundColor: `${pomoStage === "break" ? "white" : "transparent"}`,
-          }}>
+          }}
+        >
           <img src={coffe} alt="cofee" />
           <span> Break</span>
         </button>
@@ -136,48 +139,72 @@ export default function PomodoroTimer({
           className="text-100 text-[#1b2952] font-bold cursor-pointer select-none">
           {timerValue}
         </span>
-        <form style={{ display: `${showForm ? "inline-block" : "none"}` }} onSubmit={handleSubmit}>
+        <form
+          style={{ display: `${showForm ? "inline-block" : "none"}` }}
+          onSubmit={handleSubmit}
+        >
           <input
-            className="rounded-md p-4 mb-8 text-center"
+            className="mb-8 rounded-md p-4 text-center"
             type="text"
             placeholder="Enter Session duration"
             onChange={(e) => setPomoDuration(Number(e.target.value))}
           />
-          <button className="border-2 rounded-md ml-4 p-4 bg-green-500">Enter</button>
+          <button className="ml-4 rounded-md border-2 bg-green-500 p-4">
+            Enter
+          </button>
         </form>
-        <div className="bg-white h-2.5 rounded-3xl">
-          <div className="bg-green-400 h-full rounded-full" style={{ width: `${percentage}%` }}>
+        <div className="h-2.5 rounded-3xl bg-white">
+          <div
+            className="h-full rounded-full bg-green-400"
+            style={{ width: `${percentage}%` }}
+          >
             &nbsp;
           </div>
         </div>
       </div>
 
-      <span className="w-1/3 flex items-center justify-center text-[#1b2952] font-bold bg-[#B3BBC4]/40 p-8 rounded-md select-none">
-        <img width={42} height={42} src={activeTask?.category.src || folder} alt="" />
+      <span className="flex w-1/3 select-none items-center justify-center rounded-md bg-[#B3BBC4]/40 p-8 font-bold text-[#1b2952]">
+        <img
+          width={42}
+          height={42}
+          src={activeTask?.category.src || folder}
+          alt=""
+        />
         {activeTask?.todoName || " #1 It's time to focus"}
       </span>
 
-      <div className="flex gap-12  w-3/4  justify-center select-none">
+      <div className="flex w-3/4 select-none justify-center gap-12">
         <button
           onClick={() => setPomoStatus("reset")}
           className="rounded-full bg-white px-8 text-[#1b2952]"
           style={{
             display: `${pomoStatus === "stopped" ? "none" : "inline-block"}`,
-          }}>
+          }}
+        >
           <img src={reset} alt="Reset" />
         </button>
         <button
-          onClick={() => setPomoStatus((status) => (status === "stopped" ? "ongoing" : "stopped"))}
-          className="flex items-center justify-center gap-18 text-10 bg-[#0bb463] text-white p-12 w-1/3 rounded-full">
+          onClick={() =>
+            setPomoStatus((status) =>
+              status === "stopped" ? "ongoing" : "stopped",
+            )
+          }
+          className="text-10 flex w-1/3 items-center justify-center gap-18 rounded-full bg-[#0bb463] p-12 text-white"
+        >
           <img src={pomoStatus === "stopped" ? play : stop} alt="stop" />
           {pomoStatus === "stopped" ? "Start" : "Stop"}
         </button>
         <button
-          onClick={() => setPomoStatus((status) => (status === "paused" ? "ongoing" : "paused"))}
-          className="rounded-full text-[#1b2952] bg-white p-8"
+          onClick={() =>
+            setPomoStatus((status) =>
+              status === "paused" ? "ongoing" : "paused",
+            )
+          }
+          className="rounded-full bg-white p-8 text-[#1b2952]"
           style={{
             display: `${pomoStatus === "stopped" ? "none" : "inline-block"}`,
-          }}>
+          }}
+        >
           <img src={pausePlay} alt="Pause" />
         </button>
       </div>

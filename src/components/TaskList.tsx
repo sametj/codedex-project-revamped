@@ -4,6 +4,8 @@ import search from "@/assets/magnifying-glass.svg";
 import add from "@/assets/plus-circle-fill.svg";
 import menu from "@/assets/dots-three-outline-vertical-fill.svg";
 import folder from "@/assets/folder-open-fill.svg";
+import editIcon from "@/assets/pencil-simple-line-fill.svg";
+import deleteIcon from "@/assets/trash-fill.svg";
 
 export default function TaskList({
   todoList,
@@ -123,7 +125,7 @@ function Task({
     <li
       onClick={() => activateTask(todo.id)}
       key={todo.id}
-      className="flex items-center p-8 justify-between hover:bg-gradient-to-r from-violet-100/20 from-20% via-violet-200 via-30% to-transparent to-100%">
+      className=" relative flex items-center p-8 justify-between hover:bg-gradient-to-r from-violet-100/20 from-20% via-violet-200 via-30% to-transparent to-100%">
       <div className="flex items-center">
         <input
           checked={todo.isCompleted}
@@ -170,7 +172,30 @@ function Task({
           {todo.isCompleted ? "Done" : `session ${todo.currentSession}/ ${todo.totalSession}`}
         </span>
       </div>
-      <span className="self-end text-[gray] w-1/4 ">At {todo.time}</span>
+      <span className=" text-[gray] w-2/4 ">At {todo.time}</span>
+      <button className="flex  items-center justify-center p-2">
+        <img src={menu} alt="Edit icon" />
+      </button>
+      {activeTask?.id === todo.id && (
+        <EditMenu>
+          <button className="flex gap-8 p-4 items-center">
+            <img src={editIcon} />
+            Edit
+          </button>
+          <button className="flex gap-8 p-4 items-center">
+            <img src={deleteIcon} />
+            Delete
+          </button>
+        </EditMenu>
+      )}
     </li>
+  );
+}
+
+function EditMenu({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="absolute top-45 right-15 bg-white divide-y w-fit h-fit text-black p-8 flex flex-col gap-8  rounded-md z-10">
+      {children}
+    </div>
   );
 }
