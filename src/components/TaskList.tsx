@@ -7,21 +7,19 @@ import folder from "@/assets/folder-open-fill.svg";
 
 export default function TaskList({
   todoList,
-  activeTask,
+  activeTaskId,
   showForm,
   checkboxChange,
-  setActiveTask,
-  setPomoDuration,
-  setBreakDuration,
+  activateTask,
 }: {
   todoList: todoArray;
-  activeTask: todo | null;
+  activeTaskId: number | null;
   showForm: () => void;
+  activateTask: (id:number) => void,
   checkboxChange: (id: number) => void;
-  setActiveTask: (task: todo) => void;
-  setPomoDuration: (duration: number) => void;
-  setBreakDuration: (duration: number) => void;
 }) {
+  const activeTask = todoList.find(item => item.id === activeTaskId) || null
+
   return (
     <>
       <section className=" row-span-3  flex flex-col  items-center border-m rounded-3xl bg-[#f3f3f3]/60 backdrop-blur-md">
@@ -51,11 +49,9 @@ export default function TaskList({
           {todoList.length > 0 ? (
             <Tasks
               todoList={todoList}
-              setTodoList={checkboxChange}
               activeTask={activeTask}
-              setActiveTask={setActiveTask}
-              setPomoDuration={setPomoDuration}
-              setBreakDuration={setBreakDuration}
+              setTodoList={checkboxChange}
+              activateTask={activateTask}
             />
           ) : (
             <EmptyList />
@@ -90,28 +86,22 @@ function Tasks({
   todoList,
   activeTask,
   setTodoList,
-  setActiveTask,
-  setPomoDuration,
-  setBreakDuration,
+  activateTask,
 }: {
   todoList: todoArray;
   activeTask: todo | null;
   setTodoList: (id: number) => void;
-  setActiveTask: (task: todo) => void;
-  setPomoDuration: (duration: number) => void;
-  setBreakDuration: (duration: number) => void;
+  activateTask: (id:number) => void;
 }) {
   return (
     <div className="flex flex-col gap-12 w-full">
       {todoList.map((todo) => (
         <Task
-          activeTask={activeTask}
-          setActiveTask={setActiveTask}
           key={todo.id}
           todo={todo}
+          activeTask={activeTask}
+          activateTask={activateTask}
           setTodoList={setTodoList}
-          setPomoDuration={setPomoDuration}
-          setBreakDuration={setBreakDuration}
         />
       ))}
     </div>
@@ -122,25 +112,16 @@ function Task({
   todo,
   activeTask,
   setTodoList,
-  setActiveTask,
-  setPomoDuration,
-  setBreakDuration,
+  activateTask,
 }: {
   todo: todo;
   activeTask: todo | null;
+  activateTask: (id:number) => void;
   setTodoList: (id: number) => void;
-  setActiveTask: (task: todo) => void;
-  setPomoDuration: (duration: number) => void;
-  setBreakDuration: (duration: number) => void;
 }) {
-  function handleTaskClick(task: todo) {
-    setActiveTask(task);
-    setPomoDuration(task.pomoDuration);
-    setBreakDuration(task.breakDuration);
-  }
   return (
     <li
-      onClick={() => handleTaskClick(todo)}
+      onClick={() => activateTask(todo.id)}
       key={todo.id}
       className="flex items-center p-8 justify-between hover:bg-gradient-to-r from-violet-100/20 from-20% via-violet-200 via-30% to-transparent to-100%">
       <div className="flex items-center">

@@ -9,9 +9,10 @@ import controller from "@/assets/game-controller-fill.svg";
 import food from "@/assets/bread-fill.svg";
 import book from "@/assets/book-bookmark-fill.svg";
 import sport from "@/assets/barbell-fill.svg";
-import error from "@/assets/error.svg";
 
 import { todoArray } from "@/types";
+
+import constants from "@/constants";
 
 const categories = [
   { src: briefcase, name: "Work" },
@@ -33,8 +34,8 @@ export default function TaskForm({
   const [notesOpen, setNotesOpen] = useState<boolean>(false);
   const [taskName, setTaskName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [taskDuration, setTaskDuration] = useState<number>(25);
-  const [taskBreak, setTaskBreak] = useState<number>(5);
+  const [taskDuration, setTaskDuration] = useState<number>(constants.defaultPomoDuration);
+  const [taskBreak, setTaskBreak] = useState<number>(constants.defaultBreakDuration);
   const [icon, setIcon] = useState<string>("");
 
   function handleSubmit(e: React.FormEvent) {

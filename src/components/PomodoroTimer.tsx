@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { todo, todoArray } from "@/types";
+import { todoArray } from "@/types";
 import pausePlay from "@/assets/play-pause.svg";
 import reset from "@/assets/arrows-counter-clockwise.svg";
 import stop from "@/assets/stop-fill.svg";
@@ -12,26 +12,28 @@ export default function PomodoroTimer({
   todoList,
   pomoDuration,
   breakDuration,
-  activeTask,
+  activeTaskId,
   setPomoDuration,
-  setTodoList,
+  incrementSession,
 }: {
   todoList: todoArray;
-  activeTask: todo | null;
+  activeTaskId: number | null;
   pomoDuration: number;
   breakDuration: number;
   setPomoDuration: (duration: number) => void;
   setBreakDuration: (duration: number) => void;
-  setTodoList: (todoList: todoArray) => void;
+  incrementSession: () => void,
 }) {
   const [pomoStage, setPomoStage] = useState<string>("ongoing");
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [pomoStatus, setPomoStatus] = useState<string>("stopped");
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [minutes, setMinutes] = useState<number>(0);
+  const [seconds, setSeconds] = useState<number>(0);
   const [count, setCount] = useState<number>(0);
 
-  const seconds = minutes % 60;
+  const activeTask = todoList.find(item => item.id === activeTaskId) || null
+
+  const remainingSeconds = seconds % 60;
 
   //Percentage for bar
   const pomodoroDuration = pomoStage === "ongoing" ? pomoDuration : breakDuration;
@@ -40,28 +42,28 @@ export default function PomodoroTimer({
   //active Task
   useEffect(() => {
     if (pomoStage === "ongoing") {
-      setMinutes(pomoDuration * 60);
+      setSeconds(pomoDuration * 60);
     } else {
-      setMinutes(breakDuration * 60);
+      setSeconds(breakDuration * 60);
     }
   }, [pomoStage, pomoDuration, breakDuration]);
 
   useEffect(() => {
     if (pomoStatus === "stopped") {
-      setMinutes(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
+      setSeconds(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
       setElapsedTime(0);
     }
 
     if (pomoStatus === "ongoing") {
       const interval = setInterval(() => {
-        if (minutes !== 0) {
-          setMinutes((time) => time - 1);
+        if (seconds !== 0) {
+          setSeconds((time) => time - 1);
           setElapsedTime((time) => time + 1);
         } else {
           setPomoStatus("stopped");
           setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
           setCount((count) => count + 0.5);
-          updateTask();
+          incrementSession();
         }
       }, 1000);
 
@@ -69,7 +71,7 @@ export default function PomodoroTimer({
     }
 
     if (pomoStatus === "reset") {
-      setMinutes(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
+      setSeconds(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
       setElapsedTime(0);
       setPomoStatus("stopped");
     }
@@ -78,31 +80,15 @@ export default function PomodoroTimer({
       setElapsedTime(elapsedTime);
       setPomoStatus("paused");
     }
-
-    function updateTask() {
-      const todoListCopy = [...todoList];
-      if (activeTask) {
-        const updatedTask = activeTask;
-        updatedTask.currentSession += 0.5;
-        updatedTask.isCompleted = updatedTask.currentSession === updatedTask.totalSession;
-        todoListCopy[activeTask.id] = updatedTask;
-      }
-
-      setTodoList(todoListCopy);
-
-      localStorage.setItem("todos", JSON.stringify(todoListCopy));
-    }
   }, [
     pomoStatus,
-    minutes,
+    seconds,
     pomoDuration,
     breakDuration,
     pomoStage,
     elapsedTime,
     activeTask,
     count,
-    setTodoList,
-    todoList,
   ]);
 
   //Form Section
@@ -117,6 +103,10 @@ export default function PomodoroTimer({
     setElapsedTime(0);
     setPomoStatus("stopped");
   }
+
+  const timerMinutes = String(Math.floor(seconds / 60)).padStart(2, "0")
+  const timerSeconds = String(remainingSeconds).padStart(2, "0")
+  const timerValue = `${timerMinutes}:${timerSeconds}`
 
   return (
     <div className="row-span-2 bg-[#f3f3f3]/60  backdrop-blur-md flex flex-col justify-around flex items-center justify-between rounded-3xl">
@@ -143,12 +133,8 @@ export default function PomodoroTimer({
 
       <div className="flex flex-col h-200 w-2/4  text-center justify-between">
         <span
-          // onClick={() => setShowForm((show) => !show)}
           className="text-100 text-[#1b2952] font-bold cursor-pointer select-none">
-          {Math.floor(minutes / 60) < 10
-            ? "0" + Math.floor(minutes / 60)
-            : Math.floor(minutes / 60)}
-          :{seconds < 10 ? "0" + seconds : seconds}
+          {timerValue}
         </span>
         <form style={{ display: `${showForm ? "inline-block" : "none"}` }} onSubmit={handleSubmit}>
           <input

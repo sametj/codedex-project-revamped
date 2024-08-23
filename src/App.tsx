@@ -4,14 +4,16 @@ import TaskForm from "./components/TaskForm";
 import PomoDoroStatus from "./components/PomodoroStatus";
 import TaskList from "./components/TaskList";
 
-import { todo, todoArray } from "@/types";
+import constants from "./constants"
+
+import { todoArray } from "@/types";
 
 export default function App() {
-  const [activeTask, setActiveTask] = useState<todo | null>(null);
-  const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
+  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
   const [todoList, setTodoList] = useState<todoArray>([]);
-  const [pomoDuration, setPomoDuration] = useState<number>(25);
-  const [breakDuration, setBreakDuration] = useState<number>(5);
+  const [pomoDuration, setPomoDuration] = useState<number>(constants.defaultPomoDuration);
+  const [breakDuration, setBreakDuration] = useState<number>(constants.defaultBreakDuration);
+  const [taskFormVisible, setTaskFormVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const todos = localStorage.getItem("todos");
@@ -24,8 +26,9 @@ export default function App() {
   const completedPercentage = (completedTodos.length / todoList.length) * 100;
 
   function handleShowForm() {
-    setShowTaskForm((show) => !show);
+    setTaskFormVisible((show) => !show);
   }
+
   function handleCheckboxChange(id: number) {
     setTodoList((prev) =>
       prev.map((todo) => (todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo))
@@ -40,28 +43,54 @@ export default function App() {
     setBreakDuration(duration);
   }
 
-  function handleActiveTask(task: todo) {
-    setActiveTask(task);
+  function incrementSession () {
+    if (activeTaskId) {
+      const updatedTask = todoList.find(item => item.id === activeTaskId);
+
+      if (!updatedTask) {
+        throw new Error("Task not found")
+      }
+
+      updatedTask.currentSession += 0.5;
+      updatedTask.isCompleted = updatedTask.currentSession === updatedTask.totalSession;
+
+      const newTodoList = todoList.map(item => {
+        if (item.id !== activeTaskId) {
+          return item
+        }
+
+        return { ...updatedTask }
+      })
+
+      setTodoList(newTodoList);
+
+      localStorage.setItem("todos", JSON.stringify(newTodoList));
+    }
   }
 
-  function handleSetTodoList(newTodoList: todoArray) {
-    setTodoList(newTodoList);
+  const activateTask = (id:number) => {
+    const task = todoList.find(todo => todo.id === id)
+
+    if (!task) {
+      throw new Error("Task not found")
+    }
+
+    setActiveTaskId(task.id);
+    setPomoDuration(task.pomoDuration || constants.defaultPomoDuration);
+    setBreakDuration(task.breakDuration || constants.defaultBreakDuration);
   }
 
   return (
     <>
-      {showTaskForm && <TaskForm todoList={todoList} showForm={handleShowForm} />}
+      {taskFormVisible && <TaskForm todoList={todoList} showForm={handleShowForm} />}
       <div className="container mx-auto grid grid-cols-2 grid-rows-3  px-100 py-100 h-screen gap-20 ">
         <TaskList
-          activeTask={activeTask}
-          setActiveTask={handleActiveTask}
-          setPomoDuration={handlePomoDuration}
-          setBreakDuration={handleBreakDuration}
           todoList={todoList}
+          activeTaskId={activeTaskId}
+          activateTask={activateTask}
           showForm={handleShowForm}
           checkboxChange={handleCheckboxChange}
         />
-
         <section className="row-span-3 grid grid-rows-3  gap-20">
           <PomoDoroStatus
             todoList={todoList}
@@ -69,13 +98,13 @@ export default function App() {
             completedPercentage={completedPercentage}
           />
           <PomodoroTimer
+            incrementSession={incrementSession}
             todoList={todoList}
-            activeTask={activeTask}
+            activeTaskId={activeTaskId}
             pomoDuration={pomoDuration}
             breakDuration={breakDuration}
             setPomoDuration={handlePomoDuration}
             setBreakDuration={handleBreakDuration}
-            setTodoList={handleSetTodoList}
           />
         </section>
       </div>
