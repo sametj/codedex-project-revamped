@@ -5,7 +5,7 @@ const pxToRem = (px: number, base = 16) => {
 };
 
 const generateFontSize = () => {
-  const min = 12;
+  const min = 10;
   const max = 100;
   const fontSize: {
     [key: string]: string;
