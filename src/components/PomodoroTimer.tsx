@@ -22,39 +22,58 @@ export default function PomodoroTimer({
   breakDuration: number;
   setPomoDuration: (duration: number) => void;
   setBreakDuration: (duration: number) => void;
-  incrementSession: () => void,
+  incrementSession: () => void;
 }) {
   const [pomoStage, setPomoStage] = useState<string>("ongoing");
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [pomoStatus, setPomoStatus] = useState<string>("stopped");
   const [showForm, setShowForm] = useState<boolean>(false);
   const [seconds, setSeconds] = useState<number>(0);
-  const [count, setCount] = useState<number>(0);
 
-  const activeTask = todoList.find(item => item.id === activeTaskId) || null
-
+  const activeTask = todoList.find((item) => item.id === activeTaskId) || null;
   const remainingSeconds = seconds % 60;
 
   //Percentage for bar
-  const pomodoroDuration =
+
+  const pomoDurationInSeconds =
     pomoStage === "ongoing" ? pomoDuration : breakDuration;
-  const percentage = (elapsedTime / (pomodoroDuration * 60)) * 100;
+  const percentage = (elapsedTime / (pomoDurationInSeconds * 60)) * 100;
 
-  //active Task
   useEffect(() => {
-    if (pomoStage === "ongoing") {
-      setSeconds(pomoDuration * 60);
-    } else {
-      setSeconds(breakDuration * 60);
+    if (pomoStatus === "reset") {
+      handleReset();
     }
-  }, [pomoStage, pomoDuration, breakDuration]);
 
-  useEffect(() => {
+    if (pomoStatus === "paused") {
+      handlePause();
+    }
+
     if (pomoStatus === "stopped") {
-      setSeconds(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
+      handleStopped();
+    }
+
+    function handleReset() {
+      setPomoStatus("reset");
+      setSeconds(
+        pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60,
+      );
+      setElapsedTime(0);
+      setPomoStatus("ongoing");
+    }
+
+    function handlePause() {
+      setElapsedTime((time) => time);
+    }
+
+    function handleStopped() {
+      setSeconds(
+        pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60,
+      );
       setElapsedTime(0);
     }
+  }, [pomoDuration, pomoStatus, pomoStage, breakDuration]);
 
+  useEffect(() => {
     if (pomoStatus === "ongoing") {
       const interval = setInterval(() => {
         if (seconds !== 0) {
@@ -63,34 +82,13 @@ export default function PomodoroTimer({
         } else {
           setPomoStatus("stopped");
           setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
-          setCount((count) => count + 0.5);
           incrementSession();
         }
       }, 1000);
 
       return () => clearInterval(interval);
     }
-
-    if (pomoStatus === "reset") {
-      setSeconds(pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60);
-      setElapsedTime(0);
-      setPomoStatus("stopped");
-    }
-
-    if (pomoStatus === "paused") {
-      setElapsedTime(elapsedTime);
-      setPomoStatus("paused");
-    }
-  }, [
-    pomoStatus,
-    seconds,
-    pomoDuration,
-    breakDuration,
-    pomoStage,
-    elapsedTime,
-    activeTask,
-    count,
-  ]);
+  }, [pomoStatus, seconds, incrementSession]);
 
   //Form Section
   function handleSubmit(e: React.FormEvent) {
@@ -105,9 +103,9 @@ export default function PomodoroTimer({
     setPomoStatus("stopped");
   }
 
-  const timerMinutes = String(Math.floor(seconds / 60)).padStart(2, "0")
-  const timerSeconds = String(remainingSeconds).padStart(2, "0")
-  const timerValue = `${timerMinutes}:${timerSeconds}`
+  const timerMinutes = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const timerSeconds = String(remainingSeconds).padStart(2, "0");
+  const timerValue = `${timerMinutes}:${timerSeconds}`;
 
   return (
     <div className="row-span-2 flex flex-col items-center justify-between justify-around rounded-3xl bg-[#f3f3f3]/60 backdrop-blur-md">
@@ -134,9 +132,8 @@ export default function PomodoroTimer({
         </button>
       </div>
 
-      <div className="flex flex-col h-200 w-2/4  text-center justify-between">
-        <span
-          className="text-100 text-[#1b2952] font-bold cursor-pointer select-none">
+      <div className="flex h-200 w-2/4 flex-col justify-between text-center">
+        <span className="cursor-pointer select-none text-100 font-bold text-[#1b2952]">
           {timerValue}
         </span>
         <form

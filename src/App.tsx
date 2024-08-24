@@ -1,37 +1,54 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import PomodoroTimer from "./components/PomodoroTimer";
 import TaskForm from "./components/TaskForm";
 import PomoDoroStatus from "./components/PomodoroStatus";
 import TaskList from "./components/TaskList";
 
-import constants from "./constants"
+import constants from "./constants";
 
 import { todoArray } from "@/types";
 
+// Fetching todos from local storage without use effect
+function fetchTodos() {
+  let todos: todoArray = [];
+  try {
+    const localStorageTodos = localStorage.getItem("todos");
+    if (localStorageTodos) {
+      todos = JSON.parse(localStorageTodos);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  return todos;
+}
+
 export default function App() {
   const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
-  const [todoList, setTodoList] = useState<todoArray>([]);
-  const [pomoDuration, setPomoDuration] = useState<number>(constants.defaultPomoDuration);
-  const [breakDuration, setBreakDuration] = useState<number>(constants.defaultBreakDuration);
+  const [todoList, setTodoList] = useState<todoArray>(fetchTodos());
+  const [pomoDuration, setPomoDuration] = useState<number>(
+    constants.defaultPomoDuration,
+  );
+  const [breakDuration, setBreakDuration] = useState<number>(
+    constants.defaultBreakDuration,
+  );
   const [taskFormVisible, setTaskFormVisible] = useState<boolean>(false);
-
-  useEffect(() => {
-    const todos = localStorage.getItem("todos");
-    if (todos) {
-      setTodoList(JSON.parse(todos));
-    }
-  }, []);
 
   const completedTodos = todoList.filter((todo) => todo.isCompleted);
   const completedPercentage = (completedTodos.length / todoList.length) * 100;
 
   function handleShowForm() {
+    if (activeTaskId) {
+      setActiveTaskId(null);
+    }
+
     setTaskFormVisible((show) => !show);
   }
 
   function handleCheckboxChange(id: number) {
     setTodoList((prev) =>
-      prev.map((todo) => (todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo))
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo,
+      ),
     );
   }
 
@@ -43,24 +60,25 @@ export default function App() {
     setBreakDuration(duration);
   }
 
-  function incrementSession () {
+  function incrementSession() {
     if (activeTaskId) {
-      const updatedTask = todoList.find(item => item.id === activeTaskId);
+      const updatedTask = todoList.find((item) => item.id === activeTaskId);
 
       if (!updatedTask) {
-        throw new Error("Task not found")
+        throw new Error("Task not found");
       }
 
       updatedTask.currentSession += 0.5;
-      updatedTask.isCompleted = updatedTask.currentSession === updatedTask.totalSession;
+      updatedTask.isCompleted =
+        updatedTask.currentSession === updatedTask.totalSession;
 
-      const newTodoList = todoList.map(item => {
+      const newTodoList = todoList.map((item) => {
         if (item.id !== activeTaskId) {
-          return item
+          return item;
         }
 
-        return { ...updatedTask }
-      })
+        return { ...updatedTask };
+      });
 
       setTodoList(newTodoList);
 
@@ -68,35 +86,53 @@ export default function App() {
     }
   }
 
-  const activateTask = (id:number) => {
-    const task = todoList.find(todo => todo.id === id)
+  function activateTask(id: number) {
+    const task = todoList.find((todo) => todo.id === id);
 
     if (!task) {
-      throw new Error("Task not found")
+      throw new Error("Task not found");
     }
 
-    setActiveTaskId(task.id);
-    setPomoDuration(task.pomoDuration || constants.defaultPomoDuration);
-    setBreakDuration(task.breakDuration || constants.defaultBreakDuration);
+    if (activeTaskId === task.id) {
+      setActiveTaskId(null);
+    } else {
+      setActiveTaskId(task.id);
+      setPomoDuration(task.pomoDuration || constants.defaultPomoDuration);
+      setBreakDuration(task.breakDuration || constants.defaultBreakDuration);
+    }
+  }
+
+  function deleteTask(id: number) {
+    const newTodoList = todoList.filter((todo) => todo.id !== id);
+    setTodoList(newTodoList);
+    localStorage.setItem("todos", JSON.stringify(newTodoList));
   }
 
   return (
     <>
-      {taskFormVisible && <TaskForm todoList={todoList} showForm={handleShowForm} />}
-      <div className="container mx-auto grid grid-cols-2 grid-rows-3  px-100 py-100 h-screen gap-20 ">
+      {taskFormVisible && (
+        <TaskForm
+          todoList={todoList}
+          activeTaskId={activeTaskId}
+          showForm={handleShowForm}
+        />
+      )}
+      <div className="container mx-auto grid h-screen grid-cols-2 grid-rows-3 gap-20 px-100 py-100">
         <TaskList
           todoList={todoList}
           activeTaskId={activeTaskId}
           activateTask={activateTask}
+          deleteTask={deleteTask}
           showForm={handleShowForm}
           checkboxChange={handleCheckboxChange}
         />
-        <section className="row-span-3 grid grid-rows-3  gap-20">
+        <section className="row-span-3 grid grid-rows-3 gap-20">
           <PomoDoroStatus
             todoList={todoList}
             completedTodos={completedTodos}
             completedPercentage={completedPercentage}
           />
+
           <PomodoroTimer
             incrementSession={incrementSession}
             todoList={todoList}

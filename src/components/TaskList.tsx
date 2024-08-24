@@ -1,4 +1,5 @@
 import { todo, todoArray } from "@/types";
+import { useState } from "react";
 
 import search from "@/assets/magnifying-glass.svg";
 import add from "@/assets/plus-circle-fill.svg";
@@ -13,29 +14,35 @@ export default function TaskList({
   showForm,
   checkboxChange,
   activateTask,
+  deleteTask,
 }: {
   todoList: todoArray;
   activeTaskId: number | null;
   showForm: () => void;
-  activateTask: (id:number) => void,
+  activateTask: (id: number) => void;
+  deleteTask: (id: number) => void;
   checkboxChange: (id: number) => void;
 }) {
-  const activeTask = todoList.find(item => item.id === activeTaskId) || null
+  const activeTask = todoList.find((item) => item.id === activeTaskId) || null;
 
   return (
     <>
-      <section className=" row-span-3  flex flex-col  items-center border-m rounded-3xl bg-[#f3f3f3]/60 backdrop-blur-md">
-        <div className="basis-0 p-12  flex items-center justify-between w-full border-b-2">
-          <div className="text-[#1b2952] font-bold">
+      <section className="border-m row-span-3 flex flex-col items-center rounded-3xl bg-[#f3f3f3]/60 backdrop-blur-md">
+        <div className="flex w-full basis-0 items-center justify-between border-b-2 p-12">
+          <div className="font-bold text-[#1b2952]">
             <span>Task List </span>
             {todoList.length > 0 && (
-              <span className="text-[#4c4f53] font-light">
-                ({todoList.length > 1 ? todoList.length + " tasks" : todoList.length + " task"})
+              <span className="font-light text-[#4c4f53]">
+                (
+                {todoList.length > 1
+                  ? todoList.length + " tasks"
+                  : todoList.length + " task"}
+                )
               </span>
             )}
           </div>
 
-          <div className="text-white w-1/6 flex items-center justify-between">
+          <div className="flex w-1/6 items-center justify-between text-white">
             <button>
               <img src={search} alt="search" />
             </button>
@@ -47,9 +54,11 @@ export default function TaskList({
         </div>
 
         {/* Todo List view */}
-        <div className="basis-4/4 py-20 w-full h-full text-white flex  border-b-2  flex-wrap overflow-auto">
+        <div className="basis-4/4 flex h-full w-full flex-wrap overflow-auto border-b-2 py-20 text-white">
           {todoList.length > 0 ? (
             <Tasks
+              showForm={showForm}
+              deleteTask={deleteTask}
               todoList={todoList}
               activeTask={activeTask}
               setTodoList={checkboxChange}
@@ -61,9 +70,12 @@ export default function TaskList({
         </div>
 
         {/* Add task button */}
-        <button onClick={showForm} className="basis-0 flex items-center justify-between gap-8 p-24">
+        <button
+          onClick={showForm}
+          className="flex basis-0 items-center justify-between gap-8 p-24"
+        >
           <img src={add} alt="add" />
-          <span className="text-20 text-[#1b2952] font-bold">Add Task</span>
+          <span className="text-20 font-bold text-[#1b2952]">Add Task</span>
         </button>
       </section>
     </>
@@ -72,13 +84,15 @@ export default function TaskList({
 
 function EmptyList() {
   return (
-    <div className="w-full h-full rounded-2xl flex flex-col justify-center gap-20  items-center">
-      <div className="flex flex-col items-center justify-center w-80 h-80 bg-white rounded-2xl">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-20 rounded-2xl">
+      <div className="flex h-80 w-80 flex-col items-center justify-center rounded-2xl bg-white">
         <img src={folder} alt="folder-icon" />
       </div>
       <div className="flex flex-col items-center">
-        <span className="text-[#1b2952] font-bold text-20">No Tasks</span>
-        <span className="text-zinc-600  text-10">Add some task to the list.</span>
+        <span className="text-20 font-bold text-[#1b2952]">No Tasks</span>
+        <span className="text-10 text-zinc-600">
+          Add some task to the list.
+        </span>
       </div>
     </div>
   );
@@ -87,18 +101,24 @@ function EmptyList() {
 function Tasks({
   todoList,
   activeTask,
+  deleteTask,
   setTodoList,
   activateTask,
+  showForm,
 }: {
   todoList: todoArray;
   activeTask: todo | null;
+  showForm: () => void;
+  deleteTask: (id: number) => void;
   setTodoList: (id: number) => void;
-  activateTask: (id:number) => void;
+  activateTask: (id: number) => void;
 }) {
   return (
-    <div className="flex flex-col gap-12 w-full">
+    <div className="flex w-full flex-col gap-12">
       {todoList.map((todo) => (
         <Task
+          showForm={showForm}
+          deleteTask={deleteTask}
           key={todo.id}
           todo={todo}
           activeTask={activeTask}
@@ -115,17 +135,36 @@ function Task({
   activeTask,
   setTodoList,
   activateTask,
+  deleteTask,
+  showForm,
 }: {
   todo: todo;
   activeTask: todo | null;
-  activateTask: (id:number) => void;
+  deleteTask: (id: number) => void;
+  showForm: () => void;
+  activateTask: (id: number) => void;
   setTodoList: (id: number) => void;
 }) {
+  const [showMenu, setShowMenu] = useState(false);
+
+  function handleClick(funtionType: string, todoId: number) {
+    if (funtionType === "delete") {
+      deleteTask(todoId);
+      setShowMenu(!showMenu);
+    }
+    if (funtionType === "edit") {
+      showForm();
+      activateTask(todoId);
+      setShowMenu(!showMenu);
+    }
+  }
+
   return (
     <li
-      onClick={() => activateTask(todo.id)}
+      onClickCapture={() => activateTask(todo.id)}
       key={todo.id}
-      className=" relative flex items-center p-8 justify-between hover:bg-gradient-to-r from-violet-100/20 from-20% via-violet-200 via-30% to-transparent to-100%">
+      className="relative flex items-center justify-between from-violet-100/20 from-20% via-violet-200 via-30% to-transparent to-100% p-8 hover:bg-gradient-to-r"
+    >
       <div className="flex items-center">
         <input
           checked={todo.isCompleted}
@@ -140,7 +179,8 @@ function Task({
           style={{
             border: `${activeTask?.id === todo.id ? "2px solid #1b2952" : "2px solid #B3BBC4"}`,
             borderColor: `${activeTask?.id === todo.id ? "#1b2952" : "#B3BBC4"}`,
-          }}>
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -149,40 +189,53 @@ function Task({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="feather feather-check">
+            className="feather feather-check"
+          >
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
         </label>
       </div>
 
-      <div className="bg-white rounded-md py-8">
+      <div className="rounded-md bg-white py-8">
         <img src={todo.category.src} />
       </div>
 
-      <div className="flex mx-20 w-full flex-col self-start ">
+      <div className="mx-20 flex w-full flex-col self-start">
         <span
           className="font-bold text-[#1b2952]"
           style={{
             textDecoration: `${todo.isCompleted ? "line-through" : "none"}`,
             color: `${todo.isCompleted ? "gray" : "#1b2952"}`,
-          }}>
+          }}
+        >
           {todo.todoName}
         </span>
         <span className="text-[#1b2952]">
-          {todo.isCompleted ? "Done" : `session ${todo.currentSession}/ ${todo.totalSession}`}
+          {todo.isCompleted
+            ? "Done"
+            : `session ${todo.currentSession}/ ${todo.totalSession}`}
         </span>
       </div>
-      <span className=" text-[gray] w-2/4 ">At {todo.time}</span>
-      <button className="flex  items-center justify-center p-2">
+      <span className="w-2/4 text-[gray]">At {todo.time}</span>
+      <button
+        onClick={() => setShowMenu((menu) => !menu)}
+        className="flex items-center justify-center p-2"
+      >
         <img src={menu} alt="Edit icon" />
       </button>
-      {activeTask?.id === todo.id && (
+      {showMenu && (
         <EditMenu>
-          <button className="flex gap-8 p-4 items-center">
+          <button
+            onClick={() => handleClick("edit", todo.id)}
+            className="flex items-center gap-8 p-4"
+          >
             <img src={editIcon} />
             Edit
           </button>
-          <button className="flex gap-8 p-4 items-center">
+          <button
+            onClick={() => handleClick("delete", todo.id)}
+            className="flex items-center gap-8 p-4"
+          >
             <img src={deleteIcon} />
             Delete
           </button>
@@ -194,7 +247,7 @@ function Task({
 
 function EditMenu({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute top-45 right-15 bg-white divide-y w-fit h-fit text-black p-8 flex flex-col gap-8  rounded-md z-10">
+    <div className="absolute right-15 top-45 z-10 flex h-fit w-fit flex-col gap-8 divide-y rounded-md bg-white p-8 text-black">
       {children}
     </div>
   );

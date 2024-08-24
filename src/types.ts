@@ -3,6 +3,7 @@ export type todo = {
   category: { src: string };
   todoName: string;
   isCompleted: boolean;
+  description?: string;
   pomoDuration?: number;
   breakDuration?: number;
   currentSession: number;

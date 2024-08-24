@@ -26,7 +26,9 @@ const categories = [
 export default function TaskForm({
   showForm,
   todoList,
+  activeTaskId,
 }: {
+  activeTaskId: number | null;
   showForm: () => void;
   todoList: todoArray;
 }) {
@@ -34,31 +36,80 @@ export default function TaskForm({
   const [notesOpen, setNotesOpen] = useState<boolean>(false);
   const [taskName, setTaskName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [taskDuration, setTaskDuration] = useState<number>(constants.defaultPomoDuration);
-  const [taskBreak, setTaskBreak] = useState<number>(constants.defaultBreakDuration);
+  const [taskDuration, setTaskDuration] = useState<number>(
+    constants.defaultPomoDuration,
+  );
+  const [taskBreak, setTaskBreak] = useState<number>(
+    constants.defaultBreakDuration,
+  );
   const [icon, setIcon] = useState<string>("");
+
+  function updateFormValue() {
+    if (activeTaskId) {
+      const updatedTask = todoList.find((item) => item.id === activeTaskId);
+      if (!updatedTask) {
+        throw new Error("Task not found");
+      }
+
+      setTaskName(updatedTask.todoName);
+      setIcon(updatedTask.category.src);
+      setTaskDuration(Number(updatedTask.pomoDuration));
+      setTaskBreak(Number(updatedTask.breakDuration));
+      setDescription(String(updatedTask.description));
+      setSession(updatedTask.totalSession);
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const newTask = {
-      id: Date.now(),
-      category: { src: icon },
-      todoName: taskName,
-      isCompleted: false,
-      currentSession: 1,
-      pomoDuration: taskDuration,
-      breakDuration: taskBreak,
-      description: description,
-      totalSession: session,
-      time: new Date().toLocaleTimeString(),
-    };
-    if (taskName.length < 1) {
-      return;
-    }
-    todoList.push(newTask);
-    localStorage.setItem("todos", JSON.stringify(todoList));
+    if (activeTaskId) {
+      editTask();
+    } else {
+      const newTask = {
+        id: Date.now(),
+        category: { src: icon },
+        todoName: taskName,
+        isCompleted: false,
+        currentSession: 1,
+        pomoDuration: taskDuration,
+        breakDuration: taskBreak,
+        description: description,
+        totalSession: session,
+        time: new Date().toLocaleTimeString(),
+      };
+      if (taskName.length < 1) {
+        return;
+      }
+      todoList.push(newTask);
+      localStorage.setItem("todos", JSON.stringify(todoList));
 
+      showForm();
+    }
+    clearForm();
+  }
+
+  function clearForm() {
+    setTaskName("");
+    setIcon("");
+    setTaskDuration(25);
+    setTaskBreak(5);
+    setDescription("");
+    setSession(1);
+  }
+
+  function editTask() {
+    const updatedTask = todoList.find((item) => item.id === activeTaskId);
+    if (!updatedTask) {
+      throw new Error("Task not found");
+    }
+    updatedTask.category.src = icon;
+    updatedTask.pomoDuration = taskDuration;
+    updatedTask.breakDuration = taskBreak;
+    updatedTask.description = description;
+    updatedTask.totalSession = session;
+
+    localStorage.setItem("todos", JSON.stringify(todoList));
     showForm();
   }
 
@@ -71,28 +122,32 @@ export default function TaskForm({
   }
 
   return (
-    <section className="absolute w-full h-full bg-black/40 backdrop-blur-sm flex items-center justify-center z-10">
+    <section className="absolute z-10 flex h-full w-full items-center justify-center bg-black/40 backdrop-blur-sm">
       <form
+        onLoad={updateFormValue}
+        onAbort={clearForm}
         onSubmit={handleSubmit}
-        className="w-2/5 h-fit bg-white rounded-3xl overflow-clip flex flex-col gap-20">
+        className="flex h-fit w-2/5 flex-col gap-20 overflow-clip rounded-3xl bg-white"
+      >
         {/* Input for task */}
-        <div className="flex flex-col w-full h-100 p-22 focus:outline-none font-bold gap-20 bg-[#fefaf9]">
+        <div className="flex h-100 w-full flex-col gap-20 bg-[#fefaf9] p-22 font-bold focus:outline-none">
           <input
-            className="text-20 outline-none bg-[#fefaf9]"
+            className="bg-[#fefaf9] text-20 outline-none"
             type="text"
             placeholder="Enter Task Name"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
           />
           {taskName.length < 1 && (
-            <span className="flex items-center gap-8 text-red-600 text-xs">
+            <span className="flex items-center gap-8 text-xs text-red-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
                 height="16"
                 fill="currentColor"
                 className="bi bi-exclamation-circle"
-                viewBox="0 0 16 16">
+                viewBox="0 0 16 16"
+              >
                 <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
                 <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z" />
               </svg>
@@ -108,11 +163,12 @@ export default function TaskForm({
               <button
                 type="button"
                 onClick={() => setIcon(category.src)}
-                className="w-80 h-fit bg-zinc-400/20 rounded-md p-4"
+                className="h-fit w-80 rounded-md bg-zinc-400/20 p-4"
                 style={{
                   outline: `${icon === category.src ? "2px solid #22c55e" : "none"}`,
                 }}
-                key={index}>
+                key={index}
+              >
                 <img src={category.src} />
                 {category.name}
               </button>
@@ -121,26 +177,30 @@ export default function TaskForm({
         </div>
 
         {/* Session setter */}
-        <div className="w-full flex items-center justify-between p-20">
+        <div className="flex w-full items-center justify-between p-20">
           <span>Total Sessions</span>
-          <div className="w-1/5 bg-zinc-200 rounded-2xl p-2 flex items-center justify-around">
+          <div className="flex w-1/5 items-center justify-around rounded-2xl bg-zinc-200 p-2">
             <button type="button" onClick={handleMinus}>
               <img src={minus} />
             </button>
-            <span className="bg-white w-40 text-center p-4 rounded-3xl">{session}</span>
+            <span className="w-40 rounded-3xl bg-white p-4 text-center">
+              {session}
+            </span>
             <button type="button" onClick={handlePlus}>
               <img src={plus} />
             </button>
           </div>
         </div>
 
-        <div className="w-full h-fit flex items-center gap-20 p-20">
+        <div className="flex h-fit w-full items-center gap-20 p-20">
           <div className="flex gap-4">
             <span className=""> Enter Focus Duration:</span>
             <select
               onChange={(e) => setTaskDuration(Number(e.target.value))}
-              className="border-2 rounded-md"
-              name="pomoDuration">
+              className="rounded-md border-2"
+              name="pomoDuration"
+              value={taskDuration}
+            >
               <option value="25">25</option>
               <option value="30">30</option>
               <option value="35">35</option>
@@ -155,8 +215,10 @@ export default function TaskForm({
             <span> Enter Break Duration:</span>
             <select
               onChange={(e) => setTaskBreak(Number(e.target.value))}
-              className="border-2 rounded-md"
-              name="break">
+              className="rounded-md border-2"
+              name="break"
+              value={taskBreak}
+            >
               <option value="5">5</option>
               <option value="10">10</option>
               <option value="15">15</option>
@@ -165,15 +227,17 @@ export default function TaskForm({
         </div>
 
         {/* Task Description */}
-        <div className="p-20 h-1/5 flex items-center">
+        <div className="flex h-1/5 items-center p-20">
           <span
-            className="flex gap-8 items-center"
-            style={{ display: `${notesOpen ? "none" : "flex"}` }}>
+            className="flex items-center gap-8"
+            style={{ display: `${notesOpen ? "none" : "flex"}` }}
+          >
             Add Notes
             <button
               type="button"
               onClick={() => setNotesOpen(!notesOpen)}
-              className="bg-zinc-200 flex items-center justify-center rounded-full w-40 h-40">
+              className="flex h-40 w-40 items-center justify-center rounded-full bg-zinc-200"
+            >
               <img src={plus} />
             </button>
           </span>
@@ -182,9 +246,10 @@ export default function TaskForm({
             className="relative w-full"
             style={{
               display: `${notesOpen ? "inline-block" : "none"}`,
-            }}>
+            }}
+          >
             <textarea
-              className="w-full h-fit resize-none p-20 border-2 rounded-md break-word"
+              className="break-word h-fit w-full resize-none rounded-md border-2 p-20"
               placeholder="Enter Task Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -192,20 +257,24 @@ export default function TaskForm({
             <button
               type="button"
               onClick={() => setNotesOpen(false)}
-              className="absolute right-20 top-10 rounded-full bg-red-400 w-20 h-20 flex items-center justify-center p-2">
+              className="absolute right-20 top-10 flex h-20 w-20 items-center justify-center rounded-full bg-red-400 p-2"
+            >
               <img src={close} />
             </button>
           </div>
         </div>
 
         {/* Button container*/}
-        <div className="w-full flex items-center justify-center border-t-2 gap-20 p-12 ">
+        <div className="flex w-full items-center justify-center gap-20 border-t-2 p-12">
           <button
-            onClick={() => showForm()}
-            className="w-1/5 bg-red-400 p-12 text-white rounded-3xl ">
+            onClick={showForm}
+            className="w-1/5 rounded-3xl bg-red-400 p-12 text-white"
+          >
             Cancel
           </button>
-          <button className="w-1/5 bg-green-500 p-12 rounded-3xl text-white">Add Task</button>
+          <button className="w-1/5 rounded-3xl bg-green-500 p-12 text-white">
+            {activeTaskId ? "Save" : "Add Task"}
+          </button>
         </div>
       </form>
     </section>
