@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { todoArray } from "@/types";
 import pausePlay from "@/assets/play-pause.svg";
 import reset from "@/assets/arrows-counter-clockwise.svg";
@@ -8,131 +8,110 @@ import coffe from "@/assets/coffee-fill.svg";
 import play from "@/assets/play-fill.svg";
 import folder from "@/assets/folder-open-fill.svg";
 
-type TimerButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: React.ReactNode,
-}
-
-const TimerButton = (props: TimerButtonProps) => {
-  const { children, ...buttonProps } = props
-
-  return (
-    <button
-      {...buttonProps}
-      className="text-10 flex w-1/3 items-center justify-center gap-18 rounded-full bg-[#0bb463] p-12 text-white"
-    >
-      {children}
-    </button>
-  )
-}
-
-type pomoStages = "ongoing" | "break"
-type timerStates = pomoStages | "stopped" | "paused"
-
 export default function PomodoroTimer({
   todoList,
   pomoDuration,
   breakDuration,
   activeTaskId,
+  setPomoDuration,
   incrementSession,
 }: {
   todoList: todoArray;
   activeTaskId: number | null;
   pomoDuration: number;
   breakDuration: number;
+  setPomoDuration: (duration: number) => void;
   setBreakDuration: (duration: number) => void;
   incrementSession: () => void;
 }) {
-  const getStageDuration = (stage:pomoStages) => {
-    return stage === "ongoing" ? pomoDuration * 60 : breakDuration * 60
-  }
-
-  const defaultStage = "ongoing"
-
-  const [pomoStage, setPomoStage] = useState<pomoStages>(defaultStage);
-  const [pomoStatus, setPomoStatus] = useState<timerStates>("stopped");
-  const [seconds, setSeconds] = useState<number>(getStageDuration(defaultStage));
-
-  const [customDurationFormVisible, setCustomDurationFormVisible] = useState<boolean>(false);
-  const [customDuration, setCustomDuration] = useState(0)
+  const [pomoStage, setPomoStage] = useState<string>("ongoing");
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [pomoStatus, setPomoStatus] = useState<string>("stopped");
+  const [showForm, setShowForm] = useState<boolean>(false);
+  const [seconds, setSeconds] = useState<number>(0);
 
   const activeTask = todoList.find((item) => item.id === activeTaskId) || null;
   const remainingSeconds = seconds % 60;
 
   //Percentage for bar
-  const currentStageDuration = getStageDuration(pomoStage)
-  const elapsedTime = currentStageDuration - seconds
-  const percentage = (elapsedTime / currentStageDuration) * 100;
+
+  const pomoDurationInSeconds =
+    pomoStage === "ongoing" ? pomoDuration : breakDuration;
+  const percentage = (elapsedTime / (pomoDurationInSeconds * 60)) * 100;
+
+  useEffect(() => {
+    if (pomoStatus === "reset") {
+      handleReset();
+    }
+
+    if (pomoStatus === "paused") {
+      handlePause();
+    }
+
+    if (pomoStatus === "stopped") {
+      handleStopped();
+    }
+
+    function handleReset() {
+      setPomoStatus("reset");
+      setSeconds(
+        pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60,
+      );
+      setElapsedTime(0);
+      setPomoStatus("ongoing");
+    }
+
+    function handlePause() {
+      setElapsedTime((time) => time);
+    }
+
+    function handleStopped() {
+      setSeconds(
+        pomoStage === "ongoing" ? pomoDuration * 60 : breakDuration * 60,
+      );
+      setElapsedTime(0);
+    }
+  }, [pomoDuration, pomoStatus, pomoStage, breakDuration]);
+
+  useEffect(() => {
+    if (pomoStatus === "ongoing") {
+      const interval = setInterval(() => {
+        if (seconds !== 0) {
+          setSeconds((time) => time - 1);
+          setElapsedTime((time) => time + 1);
+        } else {
+          setPomoStatus("stopped");
+          setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
+          incrementSession();
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [pomoStatus, seconds, incrementSession]);
+
+  //Form Section
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPomoStatus("reset");
+    setShowForm(false);
+  }
+
+  function handlePomoStage() {
+    setPomoStage((stage) => (stage === "ongoing" ? "break" : "ongoing"));
+    setElapsedTime(0);
+    setPomoStatus("stopped");
+  }
 
   const timerMinutes = String(Math.floor(seconds / 60)).padStart(2, "0");
   const timerSeconds = String(remainingSeconds).padStart(2, "0");
   const timerValue = `${timerMinutes}:${timerSeconds}`;
 
-  const timerRunning = pomoStatus === "ongoing"
-
-  function handleResetClick() {
-    setSeconds(getStageDuration(pomoStage));
-  }
-
-  function handlePauseClick() {
-    setPomoStatus((status) => status === "paused" ? "ongoing" : "paused")
-  }
-
-  const startTimer = () => {
-    setPomoStatus("ongoing")
-  }
-
-  const stopTimer = () => {
-    setPomoStatus("stopped")
-    setSeconds(getStageDuration(pomoStage))
-  }
-
-  const goToStage = (stage:pomoStages) => {
-    setPomoStage(stage)
-    setSeconds(getStageDuration(stage))
-  }
-
-  const handleStageClick = (stage:pomoStages) => {
-    if (timerRunning) {
-      if (!confirm("Are you sure you want to stop the timer?")) {
-        return
-      }
-    }
-
-    setPomoStatus("stopped")
-    goToStage(stage)
-  }
-
-  //Form Section
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSeconds(customDuration * 60)
-    setCustomDurationFormVisible(false);
-  }
-
-  useEffect(() => {
-    if (timerRunning) {
-      const intervalId = setInterval(() => {
-        if (seconds !== 0) {
-          setSeconds((time) => time - 1)
-        } else {
-          setPomoStatus("stopped")
-
-          const nextStage = pomoStage === "ongoing" ? "break" : "ongoing"
-          goToStage(nextStage)
-
-          incrementSession()
-        }
-      }, 1000)
-
-      return () => clearInterval(intervalId)
-    }
-  }, [seconds, timerRunning])
-
   return (
     <div className="row-span-2 flex flex-col items-center justify-between justify-around rounded-3xl bg-[#f3f3f3]/60 backdrop-blur-md">
       <div className="flex h-45 w-6/12 justify-between rounded-3xl bg-[#f3f3f3]/40">
         <button
-          onClick={() => handleStageClick("ongoing")}
+          onClick={handlePomoStage}
           className="flex w-3/4 items-center justify-center gap-2 rounded-3xl"
           style={{
             backgroundColor: `${pomoStage === "ongoing" ? "white" : "transparent"}`,
@@ -142,7 +121,7 @@ export default function PomodoroTimer({
           <span>Ongoing</span>
         </button>
         <button
-          onClick={() => handleStageClick("break")}
+          onClick={handlePomoStage}
           className="flex w-2/3 items-center justify-center gap-2 rounded-3xl"
           style={{
             backgroundColor: `${pomoStage === "break" ? "white" : "transparent"}`,
@@ -154,29 +133,23 @@ export default function PomodoroTimer({
       </div>
 
       <div className="flex h-200 w-2/4 flex-col justify-between text-center">
-        <button
-          type="button"
-          className="cursor-pointer select-none text-100 font-bold text-[#1b2952]"
-          onClick={() => setCustomDurationFormVisible(!customDurationFormVisible)}
-        >
+        <span className="select-none text-100 font-bold text-[#1b2952]">
           {timerValue}
-        </button>
-        {customDurationFormVisible && (
-          <form onSubmit={handleSubmit}>
-            <input
-              className="mb-8 rounded-md p-4 text-center"
-              type="number"
-              placeholder="Enter Session duration"
-              autoFocus
-              max={60}
-              value={customDuration}
-              onChange={e => setCustomDuration(e.target.valueAsNumber)}
-            />
-            <button className="ml-4 rounded-md border-2 bg-green-500 p-4">
-              Enter
-            </button>
-          </form>
-        )}
+        </span>
+        <form
+          style={{ display: `${showForm ? "inline-block" : "none"}` }}
+          onSubmit={handleSubmit}
+        >
+          <input
+            className="mb-8 rounded-md p-4 text-center"
+            type="text"
+            placeholder="Enter Session duration"
+            onChange={(e) => setPomoDuration(Number(e.target.value))}
+          />
+          <button className="ml-4 rounded-md border-2 bg-green-500 p-4">
+            Enter
+          </button>
+        </form>
         <div className="h-2.5 rounded-3xl bg-white">
           <div
             className="h-full rounded-full bg-green-400"
@@ -196,32 +169,41 @@ export default function PomodoroTimer({
         />
         {activeTask?.todoName || " #1 It's time to focus"}
       </span>
+
       <div className="flex w-3/4 select-none justify-center gap-12">
-        {pomoStatus === "stopped" ? (
-          <TimerButton onClick={startTimer}>
-            <img src={play} alt="start" />
-            <span className="text-14">Start</span>
-          </TimerButton>
-        ) : (
-          <>
-            <button
-              onClick={handleResetClick}
-              className="rounded-full bg-white px-8 text-[#1b2952]"
-            >
-              <img src={reset} alt="Reset" />
-            </button>
-            <TimerButton onClick={stopTimer}>
-              <img src={stop} alt="stop" />
-              <span className="text-14">Stop</span>
-            </TimerButton>
-            <button
-              onClick={handlePauseClick}
-              className="rounded-full bg-white p-8 text-[#1b2952]"
-            >
-              <img src={pausePlay} alt="Pause" />
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => setPomoStatus("reset")}
+          className="rounded-full bg-white px-8 text-[#1b2952]"
+          style={{
+            display: `${pomoStatus === "stopped" ? "none" : "inline-block"}`,
+          }}
+        >
+          <img src={reset} alt="Reset" />
+        </button>
+        <button
+          onClick={() =>
+            setPomoStatus((status) =>
+              status === "stopped" ? "ongoing" : "stopped",
+            )
+          }
+          className="text-10 flex w-1/3 items-center justify-center gap-18 rounded-full bg-[#0bb463] p-12 text-white"
+        >
+          <img src={pomoStatus === "stopped" ? play : stop} alt="stop" />
+          {pomoStatus === "stopped" ? "Start" : "Stop"}
+        </button>
+        <button
+          onClick={() =>
+            setPomoStatus((status) =>
+              status === "paused" ? "ongoing" : "paused",
+            )
+          }
+          className="rounded-full bg-white p-8 text-[#1b2952]"
+          style={{
+            display: `${pomoStatus === "stopped" ? "none" : "inline-block"}`,
+          }}
+        >
+          <img src={pausePlay} alt="Pause" />
+        </button>
       </div>
     </div>
   );
