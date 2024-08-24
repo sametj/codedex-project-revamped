@@ -52,10 +52,6 @@ export default function App() {
     );
   }
 
-  function handlePomoDuration(duration: number) {
-    setPomoDuration(duration);
-  }
-
   function handleBreakDuration(duration: number) {
     setBreakDuration(duration);
   }
@@ -139,7 +135,6 @@ export default function App() {
             activeTaskId={activeTaskId}
             pomoDuration={pomoDuration}
             breakDuration={breakDuration}
-            setPomoDuration={handlePomoDuration}
             setBreakDuration={handleBreakDuration}
           />
         </section>
